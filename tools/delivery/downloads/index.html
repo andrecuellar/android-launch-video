@@ -1,0 +1,142 @@
+<title>Video downloads</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* One short column: a download card per master and a note on how to upload them to Drive.
+   Template: put the brand colors and fonts in :root and in the dark mode blocks. */
+:root {
+  --bg: #F2F3EE; --text: #10201A; --muted: #56625B; --accent: #1F7553; --navy: #10305A;
+  --line: #D9DDD6; --card: #FFFFFF; --soft: #E1F0E7; --error: #A8321D;
+  --f-title: "Space Grotesk", system-ui, sans-serif;
+  --f-text: "IBM Plex Sans", system-ui, sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0B110E; --text: #E6EDE8; --muted: #9AABA4; --accent: #5BD39A; --navy: #8FB4E6; --line: #24312B; --card: #121A16; --soft: #16241D; --error: #F08A73; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0B110E; --text: #E6EDE8; --muted: #9AABA4; --accent: #5BD39A; --navy: #8FB4E6; --line: #24312B; --card: #121A16; --soft: #16241D; --error: #F08A73; color-scheme: dark; }
+body {
+  background: var(--bg); color: var(--text); font-family: var(--f-text); font-size: 15px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+.wrap { max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--f-title); font-weight: 700; font-size: clamp(1.6rem, 6vw, 2.2rem); line-height: 1.1; margin: 0; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--accent); }
+.meta { color: var(--muted); margin: 6px 0 0; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { font-family: var(--f-title); font-size: 1.15rem; margin: 0; }
+.data { font-family: var(--f-data); font-size: .8rem; color: var(--muted); overflow-wrap: anywhere; }
+button { font: 600 1rem var(--f-text); color: #fff; background: var(--navy); border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; align-self: flex-start; }
+button:disabled { opacity: .55; cursor: default; }
+button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.bar { height: 8px; border-radius: 999px; background: var(--soft); overflow: hidden; }
+.bar > i { display: block; height: 100%; width: 0%; background: var(--accent); }
+.status { font-size: .92rem; color: var(--muted); margin: 0; min-height: 1.4em; }
+.status.error { color: var(--error); }
+.note { color: var(--muted); font-size: .9rem; margin: 0; }
+.note ol { margin: 6px 0 0; padding-left: 20px; display: flex; flex-direction: column; gap: 4px; }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap">
+<div class="wrap">
+  <header>
+    <h1>Video downloads <em>FORMAT</em></h1>
+    <p class="meta">The masters at 1080p and 60 fps. Tap "Prepare", wait for the file to be assembled, then "Save".</p>
+  </header>
+  <div id="list"></div>
+  <p class="note" id="notice" hidden></p>
+  <div class="card">
+    <p class="note"><b>To upload them to Drive from the phone:</b></p>
+    <ol class="note">
+      <li>Save each file with its button.</li>
+      <li>Open the Google Drive app, go to the project folder and tap "+" then "Upload".</li>
+      <li>Pick the files from Downloads.</li>
+    </ol>
+  </div>
+</div>
+<script type="application/json" id="videos">
+[
+  {"id":"no-voice","title":"No voice-over","file":"video-16x9.mp4","bytes":0,"sha256":"","parts":["parts/video-16x9-00.mp4"]},
+  {"id":"voice","title":"With voice-over","file":"video-16x9-narrated.mp4","bytes":0,"sha256":"","parts":["parts/video-16x9-narrated-00.mp4"]}
+]
+</script>
+<script>
+// Assembles each master from its published parts, checks size and SHA-256, and offers it through the downloads capability.
+const videos = JSON.parse(document.getElementById("videos").textContent);
+const list = document.getElementById("list");
+const notice = document.getElementById("notice");
+const mb = (n) => (n / 1e6).toLocaleString("en", { maximumFractionDigits: 1 }) + " MB";
+let downloads = null;
+let busy = false;
+
+function card(v) {
+  const el = document.createElement("section");
+  el.className = "card";
+  el.style.marginBottom = "14px";
+  el.innerHTML = `<h2></h2><span class="data"></span><div class="bar" aria-hidden="true"><i></i></div><p class="status" role="status"></p><button type="button">Prepare</button>`;
+  el.querySelector("h2").textContent = v.title;
+  el.querySelector(".data").textContent = `${v.file} · ${mb(v.bytes)}`;
+  const button = el.querySelector("button");
+  const bar = el.querySelector(".bar > i");
+  const status = el.querySelector(".status");
+  let blob = null;
+  const say = (text, error = false) => { status.textContent = text; status.classList.toggle("error", error); };
+
+  button.addEventListener("click", async () => {
+    if (!downloads) { say("This view cannot save files. Open the page in the Claude app or in a browser.", true); return; }
+    if (blob) {
+      button.disabled = true;
+      try {
+        await downloads.save({ filename: v.file, data: blob });
+        say("Saved. You can upload it to Drive now.");
+        button.textContent = "Save again";
+      } catch (e) {
+        const code = e && e.code;
+        if (code === "declined") say("Not saved. You can try again.");
+        else if (code === "rate_limited") say("Another confirmation is open. Wait a moment and tap again.");
+        else if (code === "too_large") say("The phone does not accept such a large file from here.", true);
+        else say("Could not save in this view (" + (code || "error") + ").", true);
+      } finally { button.disabled = false; }
+      return;
+    }
+    if (busy) { say("Wait for the other file to finish."); return; }
+    busy = true; button.disabled = true;
+    try {
+      const chunks = []; let received = 0;
+      for (const [i, part] of v.parts.entries()) {
+        say(`Downloading part ${i + 1} of ${v.parts.length}…`);
+        const r = await fetch(part);
+        if (!r.ok) throw new Error(`part ${i + 1}: ${r.status}`);
+        const b = await r.arrayBuffer();
+        chunks.push(b); received += b.byteLength;
+        bar.style.width = Math.min(100, (received / v.bytes) * 100).toFixed(1) + "%";
+      }
+      if (received !== v.bytes) throw new Error(`size ${received} instead of ${v.bytes}`);
+      say("Checking that the file is complete…");
+      const joined = new Uint8Array(received); let p = 0;
+      for (const t of chunks) { joined.set(new Uint8Array(t), p); p += t.byteLength; }
+      if (crypto && crypto.subtle) {
+        const h = await crypto.subtle.digest("SHA-256", joined);
+        const hex = [...new Uint8Array(h)].map((x) => x.toString(16).padStart(2, "0")).join("");
+        if (hex !== v.sha256) throw new Error("the assembled file does not match the original");
+      }
+      blob = new Blob([joined], { type: "video/mp4" });
+      say(`Ready: ${mb(received)}, verified. Tap "Save".`);
+      button.textContent = "Save";
+    } catch (e) {
+      say("Could not prepare it: " + e.message + ". Try again.", true);
+      bar.style.width = "0%";
+    } finally { busy = false; button.disabled = false; }
+  });
+  return el;
+}
+
+videos.forEach((v) => list.appendChild(card(v)));
+
+(async () => {
+  try { downloads = window.claude ? await window.claude.use("downloads") : null; } catch { downloads = null; }
+  if (!downloads) {
+    notice.hidden = false;
+    notice.textContent = "This view cannot save files. Open it from the Claude app on the phone or in a browser.";
+  }
+})();
+</script>

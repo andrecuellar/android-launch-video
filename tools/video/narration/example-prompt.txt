@@ -1,0 +1,10 @@
+# AUDIO PROFILE: Presenter for [BRAND]
+## THE SCENE: A 40 second video ad for an app that [WHAT IT DOES], in [PLACE]. Every line goes with a short scene, so the lines have to sound quick and fluent.
+
+### DIRECTOR'S NOTES
+Young presenter, [LANGUAGE AND ACCENT], close and friendly, warm and confident, quick ad pace without shouting, with a smile in the voice, short and natural pauses; no exaggerated radio announcer. "[BRAND]" is pronounced [HOW IT SOUNDS], like "[KNOWN WORDS THAT SOUND THE SAME]". [FORM OF ADDRESS, e.g. informal "you"].
+Pace: fast and clear, like an ad with a lot of text, without rushing; within each line, minimal pauses.
+Read only the transcript, line by line, with a clear pause between one line and the next.
+
+#### TRANSCRIPT
+[One line per sentence of the script, in the order of the film.]

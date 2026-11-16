@@ -1,0 +1,11 @@
+{
+  "name": "android-launch-video-editor",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright runtime for rendering and checking the film",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright-core": "1.48.2"
+  }
+}

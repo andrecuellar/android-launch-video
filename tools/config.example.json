@@ -1,0 +1,20 @@
+{
+  "_comment": "Copy to config.json (setup.sh does it) and edit. Any key can be overridden with an env var ALV_<KEY>, e.g. ALV_EMULATOR_SERIAL=emulator-5556. Keys starting with _ are ignored.",
+  "emulator_serial": "emulator-5554",
+  "avd_name": "Pixel_8_API_35",
+  "android_sdk_windows": "C:\\Android\\Sdk",
+  "windows_exec_wrapper": "",
+  "powershell_wsl": "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe",
+  "windows_tools_dir": "C:\\Users\\YOUR_USER\\video-tools",
+  "windows_ffmpeg_wsl": "/mnt/c/Users/YOUR_USER/video-tools/ffmpeg/ffmpeg.exe",
+  "capture_dir_wsl": "/mnt/c/Users/YOUR_USER/video-tools/capture",
+  "capture_dir_windows": "C:\\Users\\YOUR_USER\\video-tools\\capture",
+  "screen_corner": [0, 0],
+  "capture_size": [2400, 1080],
+  "capture_filter": "hwdownload,format=bgra,transpose=1,format=nv12",
+  "encoder": "hevc_amf",
+  "encoder_args": [],
+  "chromium_path": "",
+  "whisper_model_dir": "/PATH/TO/WORKDIR/models/faster-whisper-large-v3",
+  "masters_dir_wsl": "/mnt/c/Users/YOUR_USER/Videos"
+}

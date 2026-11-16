@@ -1,0 +1,45 @@
+# Python and Node
+venv/
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+
+# Local configuration and secrets
+config.json
+*.env
+.env*
+.dev.vars
+
+# Work dirs and generated material (a production lives outside this repository)
+work/
+clips/
+clips60/
+tests60/
+review/
+material/
+material60/
+render/
+draft/
+deliverables/
+parts/
+PROGRESS.md
+
+# Captured and generated media
+*.mp4
+*.mkv
+*.webm
+*.mov
+*.wav
+*.mp3
+*.m4a
+*.aac
+*.flac
+*.png
+*.jpg
+*.jpeg
+
+# Models
+models/
+*.bin
+*.safetensors
